@@ -1,47 +1,77 @@
 <script setup>
+// This starter template is using Vue 3 <script setup> SFCs
+// Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
+import { onMounted, ref } from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+
+const posts = ref([])
+
+onMounted(() => {
+  fetch('http://graph-api.test/graphql', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: `
+        query {
+          posts {
+            data {
+              id
+              title
+            }
+          }
+        }
+      `,
+    }),
+  })
+    .then(res => res.json())
+    .then(result => {
+      console.log(result)
+      posts.value = result.data.posts.data
+    })
+})
+
+function handleMutation() {
+  fetch('http://graph-api.test/graphql', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: `
+        mutation {
+          createPostResolver(user_id: 1, title: "Hello from Vue", body: "content from vue") {
+            id
+            title
+          }
+        }
+      `,
+    }),
+  })
+    .then(res => res.json())
+    .then(result => {
+      console.log('Post was created')
+    })
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <img alt="Vue logo" src="./assets/logo.png" />
+  <HelloWorld msg="Hello Vue 3 + Vite" />
+  <ul>
+    <li v-for="post in posts" :key="post.id">{{ post.title }}</li>
+  </ul>
+  <button @click="handleMutation">Mutation</button>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
 }
 </style>
